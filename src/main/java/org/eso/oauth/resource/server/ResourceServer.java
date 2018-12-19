@@ -7,14 +7,19 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
+import org.springframework.security.config.annotation.method.configuration.GlobalMethodSecurityConfiguration;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.config.annotation.web.configuration.EnableResourceServer;
 import org.springframework.security.oauth2.config.annotation.web.configuration.ResourceServerConfigurerAdapter;
 import org.springframework.security.oauth2.config.annotation.web.configurers.ResourceServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.OAuth2Authentication;
+import org.springframework.security.oauth2.provider.expression.OAuth2MethodSecurityExpressionHandler;
 import org.springframework.security.oauth2.provider.token.DefaultAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
 import org.springframework.security.oauth2.provider.token.TokenStore;
@@ -26,7 +31,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @SpringBootApplication
 @RestController
-@EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableResourceServer
 public class ResourceServer  extends ResourceServerConfigurerAdapter {
 	
@@ -39,7 +43,8 @@ public class ResourceServer  extends ResourceServerConfigurerAdapter {
     public static void main(String[] args) {
         SpringApplication.run(ResourceServer.class, args);
     }
-
+    
+    //@PreAuthorize("#oauth2.hasAnyScope('read')") to match scope mentioned in jwt
     @RequestMapping(value = "/user", method = RequestMethod.GET)
     public Object user(Principal user) {
     	Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -84,4 +89,17 @@ public class ResourceServer  extends ResourceServerConfigurerAdapter {
        resources.resourceId(resourceId).tokenStore(tokenStore());
      }
 
+}
+
+@Configuration
+@EnableGlobalMethodSecurity
+/**
+ * To enable oauth2 security expressions on method level. eg:#oauth2.hasAnyScope('read')
+ */
+class MethodSecurityConfiguration extends GlobalMethodSecurityConfiguration {
+
+  @Override
+  protected MethodSecurityExpressionHandler createExpressionHandler() {
+    return new OAuth2MethodSecurityExpressionHandler();
+  }
 }

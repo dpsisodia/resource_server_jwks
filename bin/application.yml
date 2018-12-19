@@ -1,0 +1,12 @@
+logging:
+  level:
+    org.springframework.security: DEBUG
+    org.springframework.security.oauth2.provider.token: DEBUG
+
+security:
+ oauth2:
+   resource:
+           jwk:
+              key-set-uri: https://cas.example.org:8443/sso/oidc/jwks
+server:
+  port: 9091
